@@ -40,6 +40,141 @@
 
     body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1001; opacity: .025; }
 
+    /* ── Start Screen ── */
+    #start-screen {
+      position: fixed; inset: 0; z-index: 9000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: var(--bg);
+      cursor: none;
+      transition: opacity .8s ease, visibility .8s ease;
+    }
+    #start-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .ss-noise { position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .03;
+    }
+    .ss-glow {
+      position: absolute; width: 700px; height: 700px;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: radial-gradient(ellipse, rgba(200,169,110,.1) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+      animation: ss-pulse 4s ease-in-out infinite;
+    }
+    @keyframes ss-pulse { 0%,100%{ opacity:.6; transform:translate(-50%,-50%) scale(1); } 50%{ opacity:1; transform:translate(-50%,-50%) scale(1.08); } }
+
+    .ss-grid {
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+    }
+
+    .ss-content { position: relative; z-index: 1; text-align: center; }
+    .ss-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(3.5rem, 10vw, 7rem);
+      line-height: 1; letter-spacing: -.04em;
+      color: var(--text);
+      margin-bottom: .3rem;
+      animation: fadeUp .8s .1s both;
+    }
+    .ss-logo em { font-style: italic; color: var(--accent2); }
+
+    .ss-enter {
+      display: inline-flex; align-items: center; gap: .6rem;
+      margin-top: 2.5rem;
+      font-family: 'Syne', sans-serif; font-size: .72rem;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted);
+      animation: fadeUp .8s .4s both;
+      transition: color .2s;
+    }
+    .ss-enter-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{ opacity:1; } 50%{ opacity:.2; } }
+
+    .ss-btn {
+      margin-top: 2rem;
+      display: inline-flex; align-items: center; gap: .7rem;
+      padding: .9rem 2.2rem;
+      background: var(--text); color: var(--bg);
+      border-radius: 100px; border: none;
+      font-family: 'Syne', sans-serif; font-size: .78rem;
+      font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      cursor: none; position: relative; overflow: hidden;
+      transition: transform .25s, box-shadow .25s, background .45s, color .45s;
+      animation: fadeUp .8s .6s both;
+      box-shadow: 0 4px 24px var(--shadow);
+    }
+    .ss-btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(120deg, var(--accent2), var(--accent));
+      opacity: 0; transition: opacity .3s;
+    }
+    .ss-btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 36px rgba(200,169,110,.3); }
+    .ss-btn:hover::before { opacity: 1; }
+    .ss-btn span { position: relative; z-index: 1; }
+    .ss-btn .ss-arr { position: relative; z-index: 1; transition: transform .25s; }
+    .ss-btn:hover .ss-arr { transform: translateX(4px); }
+
+    .ss-hint {
+      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      font-family: 'Syne', sans-serif; font-size: .6rem; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted); opacity: .5;
+      animation: fadeIn 1s 1.2s both;
+    }
+
+    /* ── Loading Overlay ── */
+    #ss-loader {
+      position: fixed; inset: 0; z-index: 8999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: var(--bg);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity .4s ease, visibility .4s ease;
+    }
+    #ss-loader.visible { opacity: 1; visibility: visible; pointer-events: all; }
+    #ss-loader.fade-out { opacity: 0; visibility: hidden; }
+
+    .loader-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2rem, 6vw, 4rem);
+      letter-spacing: -.04em; color: var(--text);
+      margin-bottom: 2.5rem;
+    }
+    .loader-logo em { font-style: italic; color: var(--accent2); }
+
+    .loader-bars {
+      display: flex; align-items: flex-end; gap: 5px; height: 36px;
+    }
+    .loader-bar {
+      width: 4px; border-radius: 2px;
+      background: linear-gradient(to top, var(--accent2), var(--accent));
+      animation: bar-bounce 1s ease-in-out infinite;
+    }
+    .loader-bar:nth-child(1) { animation-delay: 0s;    height: 12px; }
+    .loader-bar:nth-child(2) { animation-delay: .1s;   height: 20px; }
+    .loader-bar:nth-child(3) { animation-delay: .2s;   height: 28px; }
+    .loader-bar:nth-child(4) { animation-delay: .3s;   height: 36px; }
+    .loader-bar:nth-child(5) { animation-delay: .2s;   height: 28px; }
+    .loader-bar:nth-child(6) { animation-delay: .1s;   height: 20px; }
+    .loader-bar:nth-child(7) { animation-delay: 0s;    height: 12px; }
+    @keyframes bar-bounce {
+      0%, 100% { transform: scaleY(.4); opacity: .5; }
+      50%       { transform: scaleY(1);  opacity: 1;  }
+    }
+
+    .loader-text {
+      margin-top: 1.8rem;
+      font-family: 'Syne', sans-serif; font-size: .65rem;
+      letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
     /* ── Theme Button ── */
     .theme-btn { position: fixed; bottom: 13rem; right: 2rem; z-index: 600; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); backdrop-filter: blur(14px); cursor: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px var(--shadow); transition: background .35s, border-color .35s, transform .2s, box-shadow .35s; overflow: hidden; }
     .theme-btn:hover { transform: scale(1.12); border-color: var(--accent); }
@@ -290,6 +425,36 @@
 </head>
 <body>
 
+  <!-- ── Start Screen ── -->
+  <div id="start-screen">
+    <div class="ss-noise"></div>
+    <div class="ss-grid"></div>
+    <div class="ss-glow"></div>
+    <div class="ss-content">
+      <div class="ss-logo">tame<em>.gg</em></div>
+      <button class="ss-btn" id="enterBtn">
+        <span>press to enter</span>
+        <span class="ss-arr">→</span>
+      </button>
+    </div>
+    <div class="ss-hint">music will play on entry</div>
+  </div>
+
+  <!-- ── Loading Overlay ── -->
+  <div id="ss-loader">
+    <div class="loader-logo">tame<em>.gg</em></div>
+    <div class="loader-bars">
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+    </div>
+    <div class="loader-text">loading...</div>
+  </div>
+
   <div id="cur"></div>
   <div id="cur-ring"></div>
 
@@ -310,8 +475,8 @@
 
   <section id="hero">
     <div class="grid-lines"></div>
-    <p class="hero-eyebrow">Charlotte, NC &nbsp;·&nbsp; Creator &nbsp;·&nbsp; Builder</p>
-    <h1 class="hero-name">Andrew <em> Zandi</em><img src="https://flagofiran.com/files/flag-of-iran-emoji-ios.png" alt="Pahlavi Iranian Flag" title="Lion & Sun — Imperial Iran" style="height:0.82em;width:auto;display:inline-block;vertical-align:middle;margin-left:0.18em;position:relative;top:-0.04em;"></h1>
+    <p class="hero-eyebrow">Charlotte, NC &nbsp;·&nbsp; Seattle, WA &nbsp;·&nbsp; Influcener</p>
+    <h1 class="hero-name">Andrew <em>Zandi</em><img src="https://flagofiran.com/files/flag-of-iran-emoji-ios.png" alt="Pahlavi Iranian Flag" title="Lion & Sun — Imperial Iran" style="height:0.82em;width:auto;display:inline-block;vertical-align:middle;margin-left:0.18em;position:relative;top:-0.04em;"></h1>
     <p class="hero-domain">tame.gg</p>
 
     <div class="hero-socials">
@@ -681,12 +846,31 @@
     }
 
     audio.volume = 0.5;
+    setPlayState(false);
 
-    // Autoplay — browser may block, so catch and show paused state
-    audio.play().then(() => {
-      setPlayState(true);
-    }).catch(() => {
-      setPlayState(false);
+    // ── Start screen enter
+    const startScreen = document.getElementById('start-screen');
+    const ssLoader = document.getElementById('ss-loader');
+    const enterBtn = document.getElementById('enterBtn');
+
+    enterBtn.addEventListener('click', () => {
+      // 1. Hide start screen
+      startScreen.classList.add('hidden');
+
+      // 2. Show loader immediately
+      ssLoader.classList.add('visible');
+
+      // 3. Start audio
+      audio.play().then(() => setPlayState(true)).catch(() => setPlayState(false));
+
+      // 4. After 1.8s fade loader out
+      setTimeout(() => {
+        ssLoader.classList.add('fade-out');
+        setTimeout(() => {
+          ssLoader.classList.remove('visible');
+          ssLoader.classList.remove('fade-out');
+        }, 450);
+      }, 1800);
     });
 
     plPlay.addEventListener('click', () => {
