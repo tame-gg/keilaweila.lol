@@ -32,6 +32,7 @@
 
     html { scroll-behavior: smooth; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; cursor: none; transition: background .45s, color .45s; }
+    body.locked { overflow: hidden; }
 
     #cur { position: fixed; top: 0; left: 0; width: 9px; height: 9px; background: var(--text); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .25s, height .25s, background .25s; }
     #cur-ring { position: fixed; top: 0; left: 0; width: 34px; height: 34px; border: 1.5px solid rgba(200,169,110,.5); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width .18s ease-out, height .18s ease-out; }
@@ -673,14 +674,14 @@
   </footer>
 
   <!-- ── Music Player Widget ── -->
-  <audio id="bg-audio" src="blockbuster.mp3" loop preload="auto"></audio>
+  <audio id="bg-audio" src="bleed.mp3" loop preload="auto"></audio>
 
   <div id="player">
     <div class="pl-header">
       <div class="pl-disc" id="plDisc"></div>
       <div class="pl-meta">
-        <div class="pl-title">blockbuster</div>
-        <div class="pl-sub">skaiwater archive</div>
+        <div class="pl-title">bleed</div>
+        <div class="pl-sub">malcolm todd, omar apollo</div>
       </div>
     </div>
     <div class="pl-progress">
@@ -868,6 +869,9 @@
     const ssLoader = document.getElementById('ss-loader');
     const enterBtn = document.getElementById('enterBtn');
 
+    // Lock scroll while start screen is visible
+    document.body.classList.add('locked');
+
     enterBtn.addEventListener('click', () => {
       // 1. Hide start screen
       startScreen.classList.add('hidden');
@@ -875,15 +879,19 @@
       // 2. Show loader immediately
       ssLoader.classList.add('visible');
 
-      // 3. Start audio
+      // 3. Snap scroll to top before revealing site
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      // 4. Start audio
       audio.play().then(() => setPlayState(true)).catch(() => setPlayState(false));
 
-      // 4. After 1.8s fade loader out
+      // 5. After 1.8s fade loader out, then unlock scroll
       setTimeout(() => {
         ssLoader.classList.add('fade-out');
         setTimeout(() => {
           ssLoader.classList.remove('visible');
           ssLoader.classList.remove('fade-out');
+          document.body.classList.remove('locked');
         }, 450);
       }, 1800);
     });
