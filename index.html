@@ -714,7 +714,7 @@
           </svg>
         </button>
         <!-- Speed toggle -->
-        <button class="pl-speed-btn" id="plSpeed" title="Toggle speed">0.8×</button>
+        <button class="pl-speed-btn" id="plSpeed" title="Toggle speed">0.85×</button>
       </div>
       <div class="pl-vol">
         <span class="pl-vol-icon">
@@ -946,7 +946,7 @@
       filter = audioCtx.createBiquadFilter();
       filter.type = 'lowpass';
       filter.frequency.value = 3800; // warm, slightly muffled = TikTok slowed vibe
-      filter.Q.value = 0.8;
+      filter.Q.value = 0.85;
       gainNode = audioCtx.createGain();
       gainNode.gain.value = 1;
       source.connect(filter);
@@ -957,11 +957,11 @@
 
     function applySpeed() {
       if (isSlowed) {
-        audio.playbackRate = 0.8;
-        plSpeedBtn.textContent = '0.8×';
+        audio.playbackRate = 0.85;
+        plSpeedBtn.textContent = '0.85×';
         plSpeedBtn.classList.remove('normal');
         if (audioReady) {
-          filter.frequency.setTargetAtTime(3800, audioCtx.currentTime, 0.1);
+          filter.frequency.setTargetAtTime(5000, audioCtx.currentTime, 0.1);
         }
       } else {
         audio.playbackRate = 1.0;
@@ -974,7 +974,7 @@
     }
 
     // Init slowed on first play
-    audio.playbackRate = 0.8;
+    audio.playbackRate = 0.85;
 
     plSpeedBtn.addEventListener('click', () => {
       // Setup Web Audio on first interaction if not already done
