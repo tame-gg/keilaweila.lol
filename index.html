@@ -32,7 +32,6 @@
 
     html { scroll-behavior: smooth; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; cursor: none; transition: background .45s, color .45s; }
-    body.locked { overflow: hidden; }
 
     #cur { position: fixed; top: 0; left: 0; width: 9px; height: 9px; background: var(--text); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .25s, height .25s, background .25s; }
     #cur-ring { position: fixed; top: 0; left: 0; width: 34px; height: 34px; border: 1.5px solid rgba(200,169,110,.5); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width .18s ease-out, height .18s ease-out; }
@@ -254,19 +253,6 @@
     .pl-btn.pl-play:hover { transform: scale(1.12); box-shadow: 0 6px 20px rgba(200,169,110,.5); }
     .pl-btn svg { width: 13px; height: 13px; }
     .pl-btn.pl-play svg { width: 14px; height: 14px; }
-
-    .pl-speed-btn {
-      font-family: 'Syne', sans-serif; font-size: .58rem; font-weight: 700;
-      letter-spacing: .06em;
-      width: 36px; height: 32px; border-radius: 8px;
-      border: 1px solid var(--accent); background: transparent;
-      cursor: none; color: var(--accent2);
-      display: flex; align-items: center; justify-content: center;
-      transition: border-color .2s, color .2s, background .2s, transform .15s;
-      flex-shrink: 0;
-    }
-    .pl-speed-btn:hover { background: rgba(200,169,110,.1); transform: scale(1.08); }
-    .pl-speed-btn.normal { border-color: var(--border); color: var(--muted); }
 
     .pl-vol { display: flex; align-items: center; gap: .4rem; }
     .pl-vol-icon { color: var(--muted); }
@@ -674,14 +660,14 @@
   </footer>
 
   <!-- ── Music Player Widget ── -->
-  <audio id="bg-audio" src="bleed.mp3" loop preload="auto"></audio>
+  <audio id="bg-audio" src="blockbuster.mp3" loop preload="auto"></audio>
 
   <div id="player">
     <div class="pl-header">
       <div class="pl-disc" id="plDisc"></div>
       <div class="pl-meta">
-        <div class="pl-title">bleed</div>
-        <div class="pl-sub">malcolm todd, omar apollo</div>
+        <div class="pl-title">blockbuster</div>
+        <div class="pl-sub">skaiwater archive</div>
       </div>
     </div>
     <div class="pl-progress">
@@ -713,8 +699,6 @@
             <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
           </svg>
         </button>
-        <!-- Speed toggle -->
-        <button class="pl-speed-btn" id="plSpeed" title="Toggle speed">0.85×</button>
       </div>
       <div class="pl-vol">
         <span class="pl-vol-icon">
@@ -869,9 +853,6 @@
     const ssLoader = document.getElementById('ss-loader');
     const enterBtn = document.getElementById('enterBtn');
 
-    // Lock scroll while start screen is visible
-    document.body.classList.add('locked');
-
     enterBtn.addEventListener('click', () => {
       // 1. Hide start screen
       startScreen.classList.add('hidden');
@@ -879,19 +860,15 @@
       // 2. Show loader immediately
       ssLoader.classList.add('visible');
 
-      // 3. Snap scroll to top before revealing site
-      window.scrollTo({ top: 0, behavior: 'instant' });
-
-      // 4. Start audio
+      // 3. Start audio
       audio.play().then(() => setPlayState(true)).catch(() => setPlayState(false));
 
-      // 5. After 1.8s fade loader out, then unlock scroll
+      // 4. After 1.8s fade loader out
       setTimeout(() => {
         ssLoader.classList.add('fade-out');
         setTimeout(() => {
           ssLoader.classList.remove('visible');
           ssLoader.classList.remove('fade-out');
-          document.body.classList.remove('locked');
         }, 450);
       }, 1800);
     });
@@ -931,66 +908,8 @@
       audio.volume = plVol.value / 100;
     });
 
-    // ── Speed toggle (slowed TikTok effect via Web Audio API)
-    const plSpeedBtn = document.getElementById('plSpeed');
-    let isSlowed = true;
-
-    // Web Audio setup for warm low-pass filter (the TikTok "slowed" sound)
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCtx, source, filter, gainNode, audioReady = false;
-
-    function setupAudioContext() {
-      if (audioReady) return;
-      audioCtx = new AudioContext();
-      source = audioCtx.createMediaElementSource(audio);
-      filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 3800; // warm, slightly muffled = TikTok slowed vibe
-      filter.Q.value = 0.85;
-      gainNode = audioCtx.createGain();
-      gainNode.gain.value = 1;
-      source.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      audioReady = true;
-    }
-
-    function applySpeed() {
-      if (isSlowed) {
-        audio.playbackRate = 0.85;
-        plSpeedBtn.textContent = '0.85×';
-        plSpeedBtn.classList.remove('normal');
-        if (audioReady) {
-          filter.frequency.setTargetAtTime(5000, audioCtx.currentTime, 0.1);
-        }
-      } else {
-        audio.playbackRate = 1.0;
-        plSpeedBtn.textContent = '1×';
-        plSpeedBtn.classList.add('normal');
-        if (audioReady) {
-          filter.frequency.setTargetAtTime(20000, audioCtx.currentTime, 0.1);
-        }
-      }
-    }
-
-    // Init slowed on first play
-    audio.playbackRate = 0.85;
-
-    plSpeedBtn.addEventListener('click', () => {
-      // Setup Web Audio on first interaction if not already done
-      if (!audioReady) setupAudioContext();
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      isSlowed = !isSlowed;
-      applySpeed();
-    });
-
-    // Also init Web Audio when enter is clicked (first interaction)
-    document.getElementById('enterBtn').addEventListener('click', () => {
-      if (!audioReady) setupAudioContext();
-    }, { once: true });
-
     // Make player buttons work with custom cursor hovering
-    document.querySelectorAll('.pl-btn, .pl-vol-slider, #plTrack, .pl-speed-btn').forEach(el => {
+    document.querySelectorAll('.pl-btn, .pl-vol-slider, #plTrack').forEach(el => {
       el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
       el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
     });
