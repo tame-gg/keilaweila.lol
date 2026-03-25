@@ -163,7 +163,7 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 
 /* ── Music Player ── */
 #player {
-  position: fixed; bottom: 2rem; right: 2rem; z-index: 600;
+  position: fixed; bottom: 2rem; left: 2rem; z-index: 600;
   width: 260px;
   background: var(--card);
   backdrop-filter: blur(20px) saturate(1.5);
