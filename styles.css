@@ -475,14 +475,14 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); display: flex;
 .mobile-menu.open .mm-foot { opacity: 1; }
 
 /* ── Now Playing Ambient ── */
-.lfm-card > * { position: relative; z-index: 1; }
+.lfm-card > *, .lyrics-panel > * { position: relative; z-index: 1; }
 .lfm-card.live { border-color: rgba(200,169,110,.4); box-shadow: 0 0 80px -20px rgba(200,169,110,.25), 0 12px 36px var(--shadow); }
-.lfm-card.live::before {
+.lfm-card.live::before, .lyrics-panel.live::before {
   content: ''; position: absolute; inset: -80%; z-index: 0;
   background: radial-gradient(ellipse at center, rgba(200,169,110,.1) 0%, transparent 70%);
   animation: ambientPulse 3s ease-in-out infinite; pointer-events: none;
 }
-.lfm-card.live::after {
+.lfm-card.live::after, .lyrics-panel.live::after {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 2;
   background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
   animation: ambientSweep 3s ease-in-out infinite;
@@ -507,15 +507,15 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); display: flex;
 @keyframes eqBar { 0%,100%{ transform:scaleY(.3); } 50%{ transform:scaleY(1); } }
 
 /* Light-mode ambient fix — boost contrast against cream bg */
-[data-theme="light"] .lfm-card.live {
+[data-theme="light"] .lfm-card.live, [data-theme="light"] .lyrics-panel.live {
   background: rgba(200,169,110,.07);
   border-color: rgba(139,111,71,.35);
   box-shadow: 0 4px 50px -8px rgba(139,111,71,.22), 0 0 0 1px rgba(200,169,110,.12), 0 12px 36px rgba(0,0,0,.06);
 }
-[data-theme="light"] .lfm-card.live::before {
+[data-theme="light"] .lfm-card.live::before, [data-theme="light"] .lyrics-panel.live::before {
   background: radial-gradient(ellipse at center, rgba(139,111,71,.08) 0%, transparent 70%);
 }
-[data-theme="light"] .lfm-card.live::after { opacity: .8; }
+[data-theme="light"] .lfm-card.live::after, [data-theme="light"] .lyrics-panel.live::after { opacity: .8; }
 
 /* ── Logo & Nav Live Indicators ── */
 .logo.live-active {
