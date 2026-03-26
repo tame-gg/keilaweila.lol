@@ -114,51 +114,6 @@ function animateBg() {
 }
 animateBg();
 
-// ── Audio Design
-let audioEnabled = false;
-const audioBtn = document.getElementById('audioBtn');
-const audioOn = audioBtn.querySelector('.audio-on');
-const audioOff = audioBtn.querySelector('.audio-off');
-let audioCtx;
-
-function initAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-}
-function playTone(freq, dur, vol, type='sine') {
-  if (!audioEnabled || !audioCtx) return;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + dur);
-}
-
-audioBtn.addEventListener('click', () => {
-  initAudio();
-  audioEnabled = !audioEnabled;
-  if (audioEnabled) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    audioOn.style.display = 'inline';
-    audioOff.style.display = 'none';
-    playTone(600, 0.1, 0.1);
-  } else {
-    audioOn.style.display = 'none';
-    audioOff.style.display = 'inline';
-  }
-});
-audioOn.style.display = 'none';
-audioOff.style.display = 'inline';
-
-document.querySelectorAll('a, button, .pl-bar-track').forEach(el => {
-  el.addEventListener('mouseenter', () => playTone(800, 0.05, 0.02, 'triangle'));
-  el.addEventListener('click', () => playTone(400, 0.1, 0.05, 'sine'));
-});
-
 // ── GSAP Animations
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof gsap === 'undefined') return;
