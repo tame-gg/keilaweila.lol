@@ -68,10 +68,14 @@ const LFM_USER = 'pursian';
 
 // Lyrics state
 let currentLyrics = null;   // parsed LRC array [{time, text}, ...]
-let lyricsStartTime = null;  // when we estimate the track started (ms)
-let lastTrackKey = null;     // "song|||artist" to detect changes
 let lyricsSyncRAF = null;    // requestAnimationFrame ID
 let lyricsHidden = false;    // user manually closed
+
+// Spotify sync state
+let spotifyProgress = null;  // last known progress_ms from Spotify
+let spotifyPollTime = null;  // Date.now() when we last polled Spotify
+let spotifyTrackKey = null;  // "song|||artist" for Spotify track detection
+let spotifyInterval = null;  // polling interval ID
 
 // LRC parser — handles [mm:ss.xx] and [mm:ss.xxx] formats
 function parseLRC(lrc) {
@@ -149,13 +153,22 @@ function renderLyrics(result) {
   }
 }
 
-// Sync loop — runs at ~60fps to keep lyrics in time
+// Sync loop — runs at ~60fps, uses Spotify progress + interpolation
 function lyricsSyncLoop() {
-  if (!currentLyrics || !lyricsStartTime) return;
-  const elapsed = (Date.now() - lyricsStartTime) / 1000;
+  if (!currentLyrics) { lyricsSyncRAF = requestAnimationFrame(lyricsSyncLoop); return; }
+
+  let elapsed;
+  if (spotifyProgress !== null && spotifyPollTime !== null) {
+    // Interpolate: last known progress + time since poll
+    elapsed = (spotifyProgress + (Date.now() - spotifyPollTime)) / 1000;
+  } else {
+    lyricsSyncRAF = requestAnimationFrame(lyricsSyncLoop);
+    return;
+  }
+
   const container = document.getElementById('lyricsLines');
   const lines = container.querySelectorAll('.lyrics-line');
-  if (!lines.length) return;
+  if (!lines.length) { lyricsSyncRAF = requestAnimationFrame(lyricsSyncLoop); return; }
 
   let activeIdx = -1;
   for (let i = 0; i < currentLyrics.length; i++) {
@@ -209,8 +222,62 @@ document.getElementById('lyricsClose').addEventListener('click', () => {
   hideLyricsPanel();
 });
 document.getElementById('lyricsResync').addEventListener('click', () => {
-  lyricsStartTime = Date.now() - 2000;
+  // Force immediate re-poll from Spotify
+  spotifyProgress = null;
+  spotifyPollTime = null;
+  pollSpotify();
 });
+
+// ── Spotify Polling for lyrics sync
+async function pollSpotify() {
+  try {
+    const res = await fetch('/api/spotify');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.is_playing && data.progress_ms !== undefined) {
+      spotifyProgress = data.progress_ms;
+      spotifyPollTime = Date.now();
+
+      // Detect track change from Spotify
+      const trackKey = `${data.track}|||${data.artist}`;
+      if (trackKey !== spotifyTrackKey) {
+        spotifyTrackKey = trackKey;
+        lyricsHidden = false;
+        const result = await fetchLyrics(data.track, data.artist);
+        if (result) {
+          renderLyrics(result);
+          if (result.type === 'synced') startLyricsSync();
+        } else {
+          hideLyricsPanel();
+        }
+      }
+    } else {
+      spotifyProgress = null;
+      spotifyPollTime = null;
+      spotifyTrackKey = null;
+      hideLyricsPanel();
+    }
+  } catch (e) {
+    // Spotify unavailable — lyrics won't sync
+  }
+}
+
+function startSpotifyPolling() {
+  stopSpotifyPolling();
+  pollSpotify();
+  spotifyInterval = setInterval(pollSpotify, 5000);
+}
+
+function stopSpotifyPolling() {
+  if (spotifyInterval) {
+    clearInterval(spotifyInterval);
+    spotifyInterval = null;
+  }
+}
+
+// Start Spotify polling immediately
+startSpotifyPolling();
 
 async function fetchLastFm() {
   try {
@@ -238,21 +305,6 @@ async function fetchLastFm() {
       if (lfmBars) lfmBars.classList.add('active');
       if (navLogo) navLogo.classList.add('live-active');
       statusLinks.forEach(l => l.classList.add('live-pulse'));
-
-      // Lyrics: detect track change
-      const trackKey = `${song}|||${artist}`;
-      if (trackKey !== lastTrackKey) {
-        lastTrackKey = trackKey;
-        lyricsStartTime = Date.now() - 2000; // ~2s scrobble delay
-        lyricsHidden = false;
-        const result = await fetchLyrics(song, artist);
-        if (result) {
-          renderLyrics(result);
-          if (result.type === 'synced') startLyricsSync();
-        } else {
-          hideLyricsPanel();
-        }
-      }
     } else {
       dot.classList.remove('live');
       status.textContent = 'Last Played';
@@ -260,8 +312,6 @@ async function fetchLastFm() {
       if (lfmBars) lfmBars.classList.remove('active');
       if (navLogo) navLogo.classList.remove('live-active');
       statusLinks.forEach(l => l.classList.remove('live-pulse'));
-      lastTrackKey = null;
-      hideLyricsPanel();
     }
 
     const artEl = document.getElementById('lfmArt');
@@ -274,7 +324,7 @@ async function fetchLastFm() {
   }
 }
 fetchLastFm();
-setInterval(fetchLastFm, 15000);
+setInterval(fetchLastFm, 30000);
 
 // ── Discord Presence via Lanyard
 const DISCORD_ID = '1120238252125868136';
