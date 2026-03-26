@@ -387,36 +387,6 @@ function connectLanyard() {
 }
 connectLanyard();
 
-// ── Music Player
-const audio = document.getElementById('bg-audio');
-const plPlay = document.getElementById('plPlay');
-const plPlayIcon = document.getElementById('plPlayIcon');
-const plDisc = document.getElementById('plDisc');
-const plFill = document.getElementById('plFill');
-const plCur = document.getElementById('plCur');
-const plDur = document.getElementById('plDur');
-const plTrack = document.getElementById('plTrack');
-const plVol = document.getElementById('plVol');
-const plRestart = document.getElementById('plRestart');
-
-const PLAY_ICON = '<path d="M6 4l15 8-15 8V4z"/>';
-const PAUSE_ICON = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-
-function fmtTime(s) {
-  if (isNaN(s)) return '--:--';
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return m + ':' + String(sec).padStart(2, '0');
-}
-
-function setPlayState(playing) {
-  plPlayIcon.innerHTML = playing ? PAUSE_ICON : PLAY_ICON;
-  plDisc.classList.toggle('spinning', playing);
-}
-
-audio.volume = 0.2;
-setPlayState(false);
-
 // ── Start screen enter
 const startScreen = document.getElementById('start-screen');
 const ssLoader = document.getElementById('ss-loader');
@@ -428,7 +398,6 @@ enterBtn.addEventListener('click', () => {
   startScreen.classList.add('hidden');
   ssLoader.classList.add('visible');
   window.scrollTo({ top: 0, behavior: 'instant' });
-  audio.play().then(() => setPlayState(true)).catch(() => setPlayState(false));
   setTimeout(() => {
     ssLoader.classList.add('fade-out');
     setTimeout(() => {
@@ -437,44 +406,4 @@ enterBtn.addEventListener('click', () => {
       document.body.classList.remove('locked');
     }, 450);
   }, 1800);
-});
-
-plPlay.addEventListener('click', () => {
-  if (audio.paused) {
-    audio.play();
-    setPlayState(true);
-  } else {
-    audio.pause();
-    setPlayState(false);
-  }
-});
-
-plRestart.addEventListener('click', () => {
-  audio.currentTime = 0;
-  if (audio.paused) { audio.play(); setPlayState(true); }
-});
-
-audio.addEventListener('timeupdate', () => {
-  const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
-  plFill.style.width = pct + '%';
-  plCur.textContent = fmtTime(audio.currentTime);
-});
-
-audio.addEventListener('loadedmetadata', () => {
-  plDur.textContent = fmtTime(audio.duration);
-});
-
-plTrack.addEventListener('click', e => {
-  const rect = plTrack.getBoundingClientRect();
-  const pct = (e.clientX - rect.left) / rect.width;
-  audio.currentTime = pct * audio.duration;
-});
-
-plVol.addEventListener('input', () => {
-  audio.volume = plVol.value / 100;
-});
-
-document.querySelectorAll('.pl-btn, .pl-vol-slider, #plTrack').forEach(el => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
 });

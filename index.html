@@ -40,7 +40,7 @@
         <span class="ss-arr">→</span>
       </button>
     </div>
-    <div class="ss-hint"><span class="ss-dot"></span>music will play on entry</div>
+
   </div>
 
   <!-- ── Loading Overlay ── -->
@@ -374,66 +374,7 @@
     <p class="foot-copy">© 2026 tame.gg · Andrew Zandi · Powered by Claude Code.</p>
   </footer>
 
-  <!-- ── Music Player Widget ── -->
-  <audio id="bg-audio" src="iwosixinst.mp3" loop preload="auto"></audio>
 
-  <div id="player">
-    <div class="pl-header">
-      <div class="pl-disc" id="plDisc"></div>
-      <div class="pl-meta">
-        <div class="pl-title">Two Six (Instrumental)</div>
-        <div class="pl-sub">J. Cole</div>
-      </div>
-    </div>
-    <div class="pl-progress">
-      <div class="pl-bar-track" id="plTrack">
-        <div class="pl-bar-fill" id="plFill"></div>
-      </div>
-      <div class="pl-times">
-        <span class="pl-time" id="plCur">0:00</span>
-        <span class="pl-time" id="plDur">--:--</span>
-      </div>
-    </div>
-    <div class="pl-controls">
-      <div class="pl-btns">
-        <!-- Restart -->
-        <button class="pl-btn" id="plRestart" title="Restart">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polyline points="1 4 1 10 7 10" />
-            <path d="M3.51 15a9 9 0 1 0 .49-4.5" />
-          </svg>
-        </button>
-        <!-- Play/Pause -->
-        <button class="pl-btn pl-play" id="plPlay" title="Play / Pause">
-          <svg id="plPlayIcon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 4l15 8-15 8V4z" />
-          </svg>
-        </button>
-        <!-- Loop indicator (always looping) -->
-        <button class="pl-btn" id="plLoop" title="Looping" style="color:var(--accent2);border-color:var(--accent);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polyline points="17 1 21 5 17 9" />
-            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-            <polyline points="7 23 3 19 7 15" />
-            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-          </svg>
-        </button>
-      </div>
-      <div class="pl-vol">
-        <span class="pl-vol-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-          </svg>
-        </span>
-        <input class="pl-vol-slider" id="plVol" type="range" min="0" max="100" value="20" />
-      </div>
-    </div>
-  </div>
 
   <script src="main.js"></script>
 </body>
