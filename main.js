@@ -387,6 +387,34 @@ function connectLanyard() {
 }
 connectLanyard();
 
+// ── GitHub Activity
+async function fetchGitHub() {
+  try {
+    const userRes = await fetch('https://api.github.com/users/notasianrizz');
+    if (userRes.ok) {
+      const user = await userRes.json();
+      document.getElementById('ghFollowers').textContent = `${user.followers} followers · ${user.public_repos} repos`;
+    }
+    const evtRes = await fetch('https://api.github.com/users/notasianrizz/events/public?per_page=1');
+    if (evtRes.ok) {
+      const events = await evtRes.json();
+      if (events.length > 0) {
+        const ev = events[0];
+        document.getElementById('ghAct').style.display = 'block';
+        let type = ev.type.replace('Event', '');
+        if (type === 'Push') type = 'Pushed code';
+        if (type === 'Watch') type = 'Starred a repo';
+        if (type === 'Create') type = 'Created a repo';
+        document.getElementById('ghActType').textContent = type;
+        document.getElementById('ghActRepo').textContent = ev.repo.name;
+      }
+    }
+  } catch (e) {
+    // silently fail
+  }
+}
+fetchGitHub();
+
 // ── Start screen enter
 const startScreen = document.getElementById('start-screen');
 const ssLoader = document.getElementById('ss-loader');

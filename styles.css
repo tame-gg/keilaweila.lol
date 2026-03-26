@@ -367,8 +367,7 @@ section { padding: 8rem 3rem; transition: background .45s; }
 #music { background: var(--bg); }
 .music-c { max-width: 900px; margin: 0 auto; }
 .music-c .sec-h, .music-c .sec-lbl { text-align: center; }
-.presence-widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin-top: 2rem; }
-@media(max-width:650px){ .presence-widgets { grid-template-columns: 1fr; } }
+.presence-widgets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.4rem; margin-top: 2rem; }
 .lfm-card, .presence-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; backdrop-filter: blur(10px); transition: background .45s, border-color .45s, box-shadow .6s; position: relative; overflow: hidden; }
 .lfm-lbl, .presence-lbl { font-family: 'Syne', sans-serif; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; }
 .lfm-track { display: flex; align-items: center; gap: 1.1rem; }
