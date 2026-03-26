@@ -1,3 +1,15 @@
+// ── Vercel Speed Insights
+// Initialize Speed Insights for performance monitoring
+(function() {
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  const script = document.createElement('script');
+  script.src = '/_vercel/speed-insights/script.js';
+  script.defer = true;
+  script.setAttribute('data-sdkn', '@vercel/speed-insights');
+  script.setAttribute('data-sdkv', '1.3.1');
+  document.head.appendChild(script);
+})();
+
 // ── Cursor
 const cur = document.getElementById('cur'), ring = document.getElementById('cur-ring');
 let mx = 0, my = 0, rx = 0, ry = 0;
