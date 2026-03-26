@@ -62,9 +62,156 @@ window.addEventListener('scroll', () => {
   heroEl.style.setProperty('--prlx', `${y * 0.22}px`);
 }, { passive: true });
 
-// ── Last.fm API
+// ── Last.fm API + LRCLIB Synced Lyrics
 const LFM_KEY = 'b3ba5d7e74e6393d681b81d161003177';
 const LFM_USER = 'pursian';
+
+// Lyrics state
+let currentLyrics = null;   // parsed LRC array [{time, text}, ...]
+let lyricsStartTime = null;  // when we estimate the track started (ms)
+let lastTrackKey = null;     // "song|||artist" to detect changes
+let lyricsSyncRAF = null;    // requestAnimationFrame ID
+let lyricsHidden = false;    // user manually closed
+
+// LRC parser — handles [mm:ss.xx] and [mm:ss.xxx] formats
+function parseLRC(lrc) {
+  const lines = lrc.split('\n');
+  const parsed = [];
+  for (const line of lines) {
+    const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
+    if (match) {
+      const mins = parseInt(match[1]);
+      const secs = parseInt(match[2]);
+      const ms = parseInt(match[3].padEnd(3, '0'));
+      const time = mins * 60 + secs + ms / 1000;
+      const text = match[4].trim();
+      if (text) parsed.push({ time, text });
+    }
+  }
+  return parsed;
+}
+
+// Fetch lyrics from LRCLIB
+async function fetchLyrics(song, artist) {
+  try {
+    // Try exact match first
+    const res = await fetch(`https://lrclib.net/api/get?track_name=${encodeURIComponent(song)}&artist_name=${encodeURIComponent(artist)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.syncedLyrics) return { type: 'synced', data: parseLRC(data.syncedLyrics) };
+      if (data.plainLyrics) return { type: 'plain', data: data.plainLyrics };
+      if (data.instrumental) return { type: 'instrumental' };
+    }
+    // Fallback to search
+    const res2 = await fetch(`https://lrclib.net/api/search?track_name=${encodeURIComponent(song)}&artist_name=${encodeURIComponent(artist)}`);
+    if (res2.ok) {
+      const results = await res2.json();
+      const best = results.find(r => r.syncedLyrics) || results.find(r => r.plainLyrics) || results[0];
+      if (best?.syncedLyrics) return { type: 'synced', data: parseLRC(best.syncedLyrics) };
+      if (best?.plainLyrics) return { type: 'plain', data: best.plainLyrics };
+      if (best?.instrumental) return { type: 'instrumental' };
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Render lyrics lines into the panel
+function renderLyrics(result) {
+  const container = document.getElementById('lyricsLines');
+  const panel = document.getElementById('lyricsPanel');
+  container.innerHTML = '';
+
+  if (result.type === 'synced') {
+    result.data.forEach((line, i) => {
+      const div = document.createElement('div');
+      div.className = 'lyrics-line upcoming';
+      div.textContent = line.text;
+      div.dataset.index = i;
+      container.appendChild(div);
+    });
+    currentLyrics = result.data;
+  } else if (result.type === 'plain') {
+    const div = document.createElement('div');
+    div.className = 'lyrics-plain';
+    div.textContent = result.data;
+    container.appendChild(div);
+    currentLyrics = null;
+  } else if (result.type === 'instrumental') {
+    container.innerHTML = '<div class="lyrics-instrumental">♪ Instrumental ♪</div>';
+    currentLyrics = null;
+  }
+
+  if (!lyricsHidden) {
+    panel.classList.add('visible');
+    panel.classList.add('live');
+  }
+}
+
+// Sync loop — runs at ~60fps to keep lyrics in time
+function lyricsSyncLoop() {
+  if (!currentLyrics || !lyricsStartTime) return;
+  const elapsed = (Date.now() - lyricsStartTime) / 1000;
+  const container = document.getElementById('lyricsLines');
+  const lines = container.querySelectorAll('.lyrics-line');
+  if (!lines.length) return;
+
+  let activeIdx = -1;
+  for (let i = 0; i < currentLyrics.length; i++) {
+    if (elapsed >= currentLyrics[i].time) activeIdx = i;
+  }
+
+  lines.forEach((line, i) => {
+    line.classList.remove('active', 'past', 'upcoming');
+    if (i === activeIdx) {
+      line.classList.add('active');
+    } else if (i < activeIdx) {
+      line.classList.add('past');
+    } else {
+      line.classList.add('upcoming');
+    }
+  });
+
+  // Auto-scroll active line into view
+  if (activeIdx >= 0 && lines[activeIdx]) {
+    const scroll = document.getElementById('lyricsScroll');
+    const line = lines[activeIdx];
+    const scrollTop = line.offsetTop - scroll.offsetHeight / 2 + line.offsetHeight / 2;
+    scroll.scrollTop = scrollTop;
+  }
+
+  lyricsSyncRAF = requestAnimationFrame(lyricsSyncLoop);
+}
+
+function startLyricsSync() {
+  stopLyricsSync();
+  lyricsSyncRAF = requestAnimationFrame(lyricsSyncLoop);
+}
+
+function stopLyricsSync() {
+  if (lyricsSyncRAF) {
+    cancelAnimationFrame(lyricsSyncRAF);
+    lyricsSyncRAF = null;
+  }
+}
+
+function hideLyricsPanel() {
+  const panel = document.getElementById('lyricsPanel');
+  panel.classList.remove('visible', 'live');
+  stopLyricsSync();
+  currentLyrics = null;
+}
+
+// Close / Resync buttons
+document.getElementById('lyricsClose').addEventListener('click', () => {
+  lyricsHidden = true;
+  hideLyricsPanel();
+});
+document.getElementById('lyricsResync').addEventListener('click', () => {
+  lyricsStartTime = Date.now() - 2000;
+});
+
 async function fetchLastFm() {
   try {
     const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${LFM_USER}&api_key=${LFM_KEY}&format=json&limit=1`);
@@ -83,6 +230,7 @@ async function fetchLastFm() {
     const lfmBars = document.getElementById('lfmBars');
     const navLogo = document.querySelector('nav .logo');
     const statusLinks = document.querySelectorAll('a[href="#music"]');
+
     if (isLive) {
       dot.classList.add('live');
       status.textContent = 'Now Playing';
@@ -90,6 +238,21 @@ async function fetchLastFm() {
       if (lfmBars) lfmBars.classList.add('active');
       if (navLogo) navLogo.classList.add('live-active');
       statusLinks.forEach(l => l.classList.add('live-pulse'));
+
+      // Lyrics: detect track change
+      const trackKey = `${song}|||${artist}`;
+      if (trackKey !== lastTrackKey) {
+        lastTrackKey = trackKey;
+        lyricsStartTime = Date.now() - 2000; // ~2s scrobble delay
+        lyricsHidden = false;
+        const result = await fetchLyrics(song, artist);
+        if (result) {
+          renderLyrics(result);
+          if (result.type === 'synced') startLyricsSync();
+        } else {
+          hideLyricsPanel();
+        }
+      }
     } else {
       dot.classList.remove('live');
       status.textContent = 'Last Played';
@@ -97,7 +260,10 @@ async function fetchLastFm() {
       if (lfmBars) lfmBars.classList.remove('active');
       if (navLogo) navLogo.classList.remove('live-active');
       statusLinks.forEach(l => l.classList.remove('live-pulse'));
+      lastTrackKey = null;
+      hideLyricsPanel();
     }
+
     const artEl = document.getElementById('lfmArt');
     if (artUrl && !artUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
       artEl.outerHTML = `<img class="lfm-art" id="lfmArt" src="${artUrl}" alt="album art"/>`;
@@ -108,7 +274,7 @@ async function fetchLastFm() {
   }
 }
 fetchLastFm();
-setInterval(fetchLastFm, 30000);
+setInterval(fetchLastFm, 15000);
 
 // ── Discord Presence via Lanyard
 const DISCORD_ID = '1120238252125868136';

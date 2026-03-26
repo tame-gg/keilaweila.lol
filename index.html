@@ -37,7 +37,7 @@
         <span class="ss-arr">→</span>
       </button>
     </div>
-    <div class="ss-hint">music will play on entry</div>
+    <div class="ss-hint"><span class="ss-dot"></span>music will play on entry</div>
   </div>
 
   <!-- ── Loading Overlay ── -->
@@ -320,6 +320,21 @@
           </div>
 
         </div>
+
+        <div class="lyrics-panel" id="lyricsPanel">
+          <div class="lyrics-header">
+            <div class="lyrics-lbl">🎤 Synced Lyrics</div>
+            <button class="lyrics-close" id="lyricsClose" title="Hide lyrics">✕</button>
+          </div>
+          <div class="lyrics-scroll" id="lyricsScroll">
+            <div class="lyrics-lines" id="lyricsLines"></div>
+          </div>
+          <div class="lyrics-footer">
+            <span class="lyrics-src">via lrclib.net</span>
+            <button class="lyrics-resync" id="lyricsResync" title="Resync from current position">↻ Resync</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
