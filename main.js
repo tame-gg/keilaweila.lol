@@ -81,16 +81,22 @@ async function fetchLastFm() {
     const status = document.getElementById('lfmStatusTxt');
     const lfmCard = document.querySelector('.lfm-card');
     const lfmBars = document.getElementById('lfmBars');
+    const navLogo = document.querySelector('nav .logo');
+    const statusLinks = document.querySelectorAll('a[href="#music"]');
     if (isLive) {
       dot.classList.add('live');
       status.textContent = 'Now Playing';
       if (lfmCard) lfmCard.classList.add('live');
       if (lfmBars) lfmBars.classList.add('active');
+      if (navLogo) navLogo.classList.add('live-active');
+      statusLinks.forEach(l => l.classList.add('live-pulse'));
     } else {
       dot.classList.remove('live');
       status.textContent = 'Last Played';
       if (lfmCard) lfmCard.classList.remove('live');
       if (lfmBars) lfmBars.classList.remove('active');
+      if (navLogo) navLogo.classList.remove('live-active');
+      statusLinks.forEach(l => l.classList.remove('live-pulse'));
     }
     const artEl = document.getElementById('lfmArt');
     if (artUrl && !artUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
