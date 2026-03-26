@@ -15,6 +15,8 @@ html { scroll-behavior: smooth; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; cursor: none; transition: background .45s, color .45s; }
 body.locked { overflow: hidden; }
 
+#bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+
 #cur { position: fixed; top: 0; left: 0; width: 9px; height: 9px; background: var(--text); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width .25s, height .25s, background .25s; }
 #cur-ring { position: fixed; top: 0; left: 0; width: 34px; height: 34px; border: 1.5px solid rgba(200,169,110,.5); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width .18s ease-out, height .18s ease-out; }
 body.hovering #cur { width: 16px; height: 16px; background: var(--accent2); }
@@ -176,8 +178,9 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
   animation: blink 1.4s ease-in-out infinite;
 }
 
-/* ── Theme Button ── */
-.theme-btn { position: fixed; bottom: 2rem; right: 2rem; z-index: 600; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); backdrop-filter: blur(14px); cursor: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px var(--shadow); transition: background .35s, border-color .35s, transform .2s, box-shadow .35s; overflow: hidden; }
+/* ── Fixed Actions ── */
+.fixed-actions { position: fixed; bottom: 2rem; right: 2rem; z-index: 600; display: flex; flex-direction: column; gap: .8rem; }
+.theme-btn { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); backdrop-filter: blur(14px); cursor: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px var(--shadow); transition: background .35s, border-color .35s, transform .2s, box-shadow .35s; overflow: hidden; }
 .theme-btn:hover { transform: scale(1.12); border-color: var(--accent); }
 
 /* ── Music Player ── */
@@ -369,6 +372,7 @@ section { padding: 8rem 3rem; transition: background .45s; }
 .music-c .sec-h, .music-c .sec-lbl { text-align: center; }
 .presence-widgets { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.4rem; margin-top: 2rem; }
 .lfm-card, .presence-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; backdrop-filter: blur(10px); transition: background .45s, border-color .45s, box-shadow .6s; position: relative; overflow: hidden; }
+.lfm-card { grid-column: 1 / -1; }
 .lfm-lbl, .presence-lbl { font-family: 'Syne', sans-serif; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; }
 .lfm-track { display: flex; align-items: center; gap: 1.1rem; }
 .lfm-art { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: var(--bg2); }
@@ -669,5 +673,5 @@ footer { padding: 4rem 3rem; border-top: 1px solid var(--border); display: flex;
   #hero { padding: 7rem 1.5rem 5rem; } section { padding: 5rem 1.5rem; }
   .about-grid, .comm-grid { grid-template-columns: 1fr; }
   footer { padding: 3rem 1.5rem; flex-direction: column; align-items: flex-start; }
-  .theme-btn { bottom: 1.2rem; right: 1.2rem; }
+  .fixed-actions { bottom: 1.2rem; right: 1.2rem; }
 }

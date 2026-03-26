@@ -33,6 +33,7 @@
 </head>
 
 <body>
+  <canvas id="bg-canvas"></canvas>
 
   <!-- ── Start Screen ── -->
   <div id="start-screen">
@@ -67,10 +68,16 @@
   <div id="cur"></div>
   <div id="cur-ring"></div>
 
-  <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
-    <span class="ti ti-moon">🌙</span>
-    <span class="ti ti-sun">☀️</span>
-  </button>
+  <div class="fixed-actions">
+    <button class="theme-btn" id="audioBtn" aria-label="Toggle audio">
+      <span class="ti audio-on">🔊</span>
+      <span class="ti audio-off">🔈</span>
+    </button>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+      <span class="ti ti-moon">🌙</span>
+      <span class="ti ti-sun">☀️</span>
+    </button>
+  </div>
 
   <nav>
     <a href="#hero" class="logo">tame<em>.gg</em></a>
@@ -284,29 +291,6 @@
         <h2 class="sec-h rv">What I'm <em>up to right now</em></h2>
         <div class="presence-widgets rv d1">
 
-          <!-- Last.fm Widget -->
-          <div class="lfm-card">
-            <div class="lfm-lbl">🎵 Last.fm · pursian</div>
-            <div class="lfm-track" id="lfmTrack">
-              <div class="lfm-art" id="lfmArt"
-                style="display:flex;align-items:center;justify-content:center;font-size:1.6rem;">🎵</div>
-              <div class="lfm-info">
-                <div class="lfm-song" id="lfmSong">Loading...</div>
-                <div class="lfm-artist" id="lfmArtist">—</div>
-                <div class="lfm-badge">
-                  <span class="lfm-dot" id="lfmDot"></span>
-                  <span id="lfmStatusTxt">Fetching...</span>
-                  <div class="lfm-bars" id="lfmBars">
-                    <span></span><span></span><span></span><span></span><span></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="lfm-footer">
-              <a href="https://last.fm/user/pursian" target="_blank">View full profile →</a>
-            </div>
-          </div>
-
           <!-- Discord Presence (Lanyard) -->
           <div class="presence-card">
             <div class="presence-lbl">🎮 Discord · asianrizz</div>
@@ -344,6 +328,29 @@
               <div class="presence-act-lbl">Latest Activity</div>
               <div class="presence-act-name" id="ghActType" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
               <div class="presence-act-detail" id="ghActRepo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+            </div>
+          </div>
+
+          <!-- Last.fm Widget -->
+          <div class="lfm-card">
+            <div class="lfm-lbl">🎵 Last.fm · pursian</div>
+            <div class="lfm-track" id="lfmTrack">
+              <div class="lfm-art" id="lfmArt"
+                style="display:flex;align-items:center;justify-content:center;font-size:1.6rem;">🎵</div>
+              <div class="lfm-info">
+                <div class="lfm-song" id="lfmSong">Loading...</div>
+                <div class="lfm-artist" id="lfmArtist">—</div>
+                <div class="lfm-badge">
+                  <span class="lfm-dot" id="lfmDot"></span>
+                  <span id="lfmStatusTxt">Fetching...</span>
+                  <div class="lfm-bars" id="lfmBars">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="lfm-footer">
+              <a href="https://last.fm/user/pursian" target="_blank">View full profile →</a>
             </div>
           </div>
 
@@ -401,6 +408,8 @@
 
 
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   <script src="main.js"></script>
 </body>
 

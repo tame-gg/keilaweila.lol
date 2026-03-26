@@ -46,11 +46,153 @@ document.querySelectorAll('.mm-link').forEach(link => {
   });
 });
 
-// ── Scroll reveal
-const obs = new IntersectionObserver(entries => entries.forEach(e => {
-  if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); }
-}), { threshold: 0.12 });
-document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+// ── Canvas Background
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let w, h, bgParticles = [];
+function resizeBg() {
+  w = bgCanvas.width = window.innerWidth;
+  h = bgCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeBg);
+resizeBg();
+
+class BgParticle {
+  constructor() {
+    this.x = Math.random() * w;
+    this.y = Math.random() * h;
+    this.vx = (Math.random() - 0.5) * 0.4;
+    this.vy = (Math.random() - 0.5) * 0.4;
+    this.rad = Math.random() * 1.2 + 0.5;
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.x < 0 || this.x > w) this.vx *= -1;
+    if (this.y < 0 || this.y > h) this.vy *= -1;
+  }
+  draw() {
+    bgCtx.beginPath();
+    bgCtx.arc(this.x, this.y, this.rad, 0, Math.PI * 2);
+    bgCtx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(200,169,110,0.4)';
+    bgCtx.fill();
+  }
+}
+for (let i = 0; i < 60; i++) bgParticles.push(new BgParticle());
+
+function animateBg() {
+  bgCtx.clearRect(0, 0, w, h);
+  let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  let cp = isDark ? '255,255,255' : '200,169,110';
+  
+  bgParticles.forEach(p => { p.update(); p.draw(); });
+  
+  for (let i = 0; i < bgParticles.length; i++) {
+    for (let j = i + 1; j < bgParticles.length; j++) {
+      let dx = bgParticles[i].x - bgParticles[j].x, dy = bgParticles[i].y - bgParticles[j].y;
+      let dist = dx*dx + dy*dy;
+      if (dist < 12000) {
+        bgCtx.beginPath();
+        bgCtx.strokeStyle = `rgba(${cp},${0.08 - dist/150000})`;
+        bgCtx.lineWidth = 0.5;
+        bgCtx.moveTo(bgParticles[i].x, bgParticles[i].y);
+        bgCtx.lineTo(bgParticles[j].x, bgParticles[j].y);
+        bgCtx.stroke();
+      }
+    }
+    let dx = bgParticles[i].x - mx, dy = bgParticles[i].y - my;
+    let dist = dx*dx + dy*dy;
+    if (dist < 25000) {
+      bgCtx.beginPath();
+      bgCtx.strokeStyle = `rgba(${cp},${0.2 - dist/125000})`;
+      bgCtx.lineWidth = 0.8;
+      bgCtx.moveTo(bgParticles[i].x, bgParticles[i].y);
+      bgCtx.lineTo(mx, my);
+      bgCtx.stroke();
+    }
+  }
+  requestAnimationFrame(animateBg);
+}
+animateBg();
+
+// ── Audio Design
+let audioEnabled = false;
+const audioBtn = document.getElementById('audioBtn');
+const audioOn = audioBtn.querySelector('.audio-on');
+const audioOff = audioBtn.querySelector('.audio-off');
+let audioCtx;
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playTone(freq, dur, vol, type='sine') {
+  if (!audioEnabled || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + dur);
+}
+
+audioBtn.addEventListener('click', () => {
+  initAudio();
+  audioEnabled = !audioEnabled;
+  if (audioEnabled) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    audioOn.style.display = 'inline';
+    audioOff.style.display = 'none';
+    playTone(600, 0.1, 0.1);
+  } else {
+    audioOn.style.display = 'none';
+    audioOff.style.display = 'inline';
+  }
+});
+audioOn.style.display = 'none';
+audioOff.style.display = 'inline';
+
+document.querySelectorAll('a, button, .pl-bar-track').forEach(el => {
+  el.addEventListener('mouseenter', () => playTone(800, 0.05, 0.02, 'triangle'));
+  el.addEventListener('click', () => playTone(400, 0.1, 0.05, 'sine'));
+});
+
+// ── GSAP Animations
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof gsap === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.querySelectorAll('.rv').forEach(el => {
+    el.style.transition = 'none';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+  });
+
+  gsap.utils.toArray('section').forEach(sec => {
+    const elems = sec.querySelectorAll('.rv');
+    if (elems.length) {
+      gsap.to(elems, {
+        scrollTrigger: { trigger: sec, start: 'top 80%' },
+        y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'power3.out', overwrite: 'auto'
+      });
+    }
+  });
+
+  // Magnetic Buttons
+  document.querySelectorAll('.ss-btn, .port-btn, .soc, .fsoc').forEach(btn => {
+    btn.addEventListener('mousemove', e => {
+      const rect = btn.getBoundingClientRect();
+      const bx = e.clientX - rect.left - rect.width / 2;
+      const by = e.clientY - rect.top - rect.height / 2;
+      gsap.to(btn, { x: bx * 0.3, y: by * 0.3, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
+    });
+    btn.addEventListener('mouseleave', () => {
+      gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)', overwrite: 'auto' });
+    });
+  });
+});
 
 // ── Parallax
 const heroEl = document.getElementById('hero');
