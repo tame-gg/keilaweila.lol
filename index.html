@@ -71,7 +71,22 @@
       <li><a href="#community">MCTT</a></li>
       <li><a href="#music">Status</a></li>
     </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mm-overlay" id="mmOverlay"></div>
+    <div class="mm-panel">
+      <a href="#hero" class="mm-link">Home</a>
+      <a href="#about" class="mm-link">About</a>
+      <a href="#portfolio" class="mm-link">Portfolio</a>
+      <a href="#community" class="mm-link">MCTT</a>
+      <a href="#music" class="mm-link">Status</a>
+      <div class="mm-foot">tame<em>.gg</em></div>
+    </div>
+  </div>
 
   <section id="hero">
     <div class="grid-lines"></div>
@@ -272,6 +287,9 @@
                 <div class="lfm-badge">
                   <span class="lfm-dot" id="lfmDot"></span>
                   <span id="lfmStatusTxt">Fetching...</span>
+                  <div class="lfm-bars" id="lfmBars">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
                 </div>
               </div>
             </div>

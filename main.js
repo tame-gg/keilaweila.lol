@@ -24,11 +24,43 @@ const saved = (() => { try { return localStorage.getItem('tame-theme'); } catch(
 applyTheme(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') === 'light' ? 'dark' : 'light'));
 
+// ── Mobile Menu
+const hamburgerBtn = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+const mmOverlay = document.getElementById('mmOverlay');
+hamburgerBtn.addEventListener('click', () => {
+  hamburgerBtn.classList.toggle('active');
+  mobileMenu.classList.toggle('open');
+  document.body.classList.toggle('locked');
+});
+mmOverlay.addEventListener('click', () => {
+  hamburgerBtn.classList.remove('active');
+  mobileMenu.classList.remove('open');
+  document.body.classList.remove('locked');
+});
+document.querySelectorAll('.mm-link').forEach(link => {
+  link.addEventListener('click', () => {
+    hamburgerBtn.classList.remove('active');
+    mobileMenu.classList.remove('open');
+    document.body.classList.remove('locked');
+  });
+});
+
 // ── Scroll reveal
 const obs = new IntersectionObserver(entries => entries.forEach(e => {
   if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); }
 }), { threshold: 0.12 });
 document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+// ── Parallax
+const heroEl = document.getElementById('hero');
+const gridEl = document.querySelector('.grid-lines');
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  if (y > heroEl.offsetHeight) return;
+  if (gridEl) gridEl.style.transform = `translateY(${y * 0.12}px)`;
+  heroEl.style.setProperty('--prlx', `${y * 0.22}px`);
+}, { passive: true });
 
 // ── Last.fm API
 const LFM_KEY = 'b3ba5d7e74e6393d681b81d161003177';
@@ -47,11 +79,18 @@ async function fetchLastFm() {
     document.getElementById('lfmArtist').textContent = artist;
     const dot = document.getElementById('lfmDot');
     const status = document.getElementById('lfmStatusTxt');
+    const lfmCard = document.querySelector('.lfm-card');
+    const lfmBars = document.getElementById('lfmBars');
     if (isLive) {
       dot.classList.add('live');
       status.textContent = 'Now Playing';
+      if (lfmCard) lfmCard.classList.add('live');
+      if (lfmBars) lfmBars.classList.add('active');
     } else {
+      dot.classList.remove('live');
       status.textContent = 'Last Played';
+      if (lfmCard) lfmCard.classList.remove('live');
+      if (lfmBars) lfmBars.classList.remove('active');
     }
     const artEl = document.getElementById('lfmArt');
     if (artUrl && !artUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
