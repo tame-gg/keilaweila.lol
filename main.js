@@ -17,10 +17,10 @@ document.querySelectorAll('a,button').forEach(el => {
 const html = document.documentElement, btn = document.getElementById('themeBtn'), disc = document.getElementById('discordWidget');
 function applyTheme(t) {
   html.setAttribute('data-theme', t);
-  try { localStorage.setItem('tame-theme', t); } catch(e) {}
+  try { localStorage.setItem('tame-theme', t); } catch (e) { }
   if (disc) disc.src = 'https://discord.com/widget?id=1012876825573204048&theme=' + (t === 'dark' ? 'dark' : 'light');
 }
-const saved = (() => { try { return localStorage.getItem('tame-theme'); } catch(e) { return null; } })();
+const saved = (() => { try { return localStorage.getItem('tame-theme'); } catch (e) { return null; } })();
 applyTheme(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') === 'light' ? 'dark' : 'light'));
 
@@ -228,7 +228,40 @@ document.getElementById('lyricsResync').addEventListener('click', () => {
   pollSpotify();
 });
 
-// ── Spotify Polling for lyrics sync
+// ── Shared widget updater (called from both Spotify and Last.fm)
+function updateLfmWidget({ song, artist, artUrl, isLive }) {
+  document.getElementById('lfmSong').textContent = song || 'Unknown';
+  document.getElementById('lfmArtist').textContent = artist || 'Unknown Artist';
+  const dot = document.getElementById('lfmDot');
+  const status = document.getElementById('lfmStatusTxt');
+  const lfmCard = document.querySelector('.lfm-card');
+  const lfmBars = document.getElementById('lfmBars');
+  const navLogo = document.querySelector('nav .logo');
+  const statusLinks = document.querySelectorAll('a[href="#music"]');
+  if (isLive) {
+    dot.classList.add('live');
+    status.textContent = 'Now Playing';
+    if (lfmCard) lfmCard.classList.add('live');
+    if (lfmBars) lfmBars.classList.add('active');
+    if (navLogo) navLogo.classList.add('live-active');
+    statusLinks.forEach(l => l.classList.add('live-pulse'));
+  } else {
+    dot.classList.remove('live');
+    status.textContent = 'Last Played';
+    if (lfmCard) lfmCard.classList.remove('live');
+    if (lfmBars) lfmBars.classList.remove('active');
+    if (navLogo) navLogo.classList.remove('live-active');
+    statusLinks.forEach(l => l.classList.remove('live-pulse'));
+  }
+  if (artUrl && !artUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
+    const artEl = document.getElementById('lfmArt');
+    if (artEl && artEl.src !== artUrl) {
+      artEl.outerHTML = `<img class="lfm-art" id="lfmArt" src="${artUrl}" alt="album art"/>`;
+    }
+  }
+}
+
+// ── Spotify Polling for lyrics sync + live widget updates
 async function pollSpotify() {
   try {
     const res = await fetch('/api/spotify');
@@ -239,7 +272,15 @@ async function pollSpotify() {
       spotifyProgress = data.progress_ms;
       spotifyPollTime = Date.now();
 
-      // Detect track change from Spotify
+      // Always update widget from Spotify when playing (catches song skips immediately)
+      updateLfmWidget({
+        song: data.track,
+        artist: data.artist,
+        artUrl: data.album_art,
+        isLive: true,
+      });
+
+      // Detect track change → fetch new lyrics
       const trackKey = `${data.track}|||${data.artist}`;
       if (trackKey !== spotifyTrackKey) {
         spotifyTrackKey = trackKey;
@@ -257,9 +298,10 @@ async function pollSpotify() {
       spotifyPollTime = null;
       spotifyTrackKey = null;
       hideLyricsPanel();
+      // Fall through to Last.fm for the "last played" state
     }
   } catch (e) {
-    // Spotify unavailable — lyrics won't sync
+    // Spotify unavailable
   }
 }
 
@@ -286,41 +328,15 @@ async function fetchLastFm() {
     const track = data.recenttracks?.track?.[0];
     if (!track) return;
     const isLive = track['@attr']?.nowplaying === 'true';
-    const song = track.name || 'Unknown';
-    const artist = track.artist?.['#text'] || 'Unknown Artist';
-    const artUrl = track.image?.find(i => i.size === 'large')?.['#text'] || '';
-    document.getElementById('lfmSong').textContent = song;
-    document.getElementById('lfmArtist').textContent = artist;
-    const dot = document.getElementById('lfmDot');
-    const status = document.getElementById('lfmStatusTxt');
-    const lfmCard = document.querySelector('.lfm-card');
-    const lfmBars = document.getElementById('lfmBars');
-    const navLogo = document.querySelector('nav .logo');
-    const statusLinks = document.querySelectorAll('a[href="#music"]');
-
-    if (isLive) {
-      dot.classList.add('live');
-      status.textContent = 'Now Playing';
-      if (lfmCard) lfmCard.classList.add('live');
-      if (lfmBars) lfmBars.classList.add('active');
-      if (navLogo) navLogo.classList.add('live-active');
-      statusLinks.forEach(l => l.classList.add('live-pulse'));
-    } else {
-      dot.classList.remove('live');
-      status.textContent = 'Last Played';
-      if (lfmCard) lfmCard.classList.remove('live');
-      if (lfmBars) lfmBars.classList.remove('active');
-      if (navLogo) navLogo.classList.remove('live-active');
-      statusLinks.forEach(l => l.classList.remove('live-pulse'));
+    // Only update widget from Last.fm when Spotify isn't driving it
+    if (!isLive && !spotifyTrackKey) {
+      const song = track.name || 'Unknown';
+      const artist = track.artist?.['#text'] || 'Unknown Artist';
+      const artUrl = track.image?.find(i => i.size === 'large')?.['#text'] || '';
+      updateLfmWidget({ song, artist, artUrl, isLive: false });
     }
-
-    const artEl = document.getElementById('lfmArt');
-    if (artUrl && !artUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
-      artEl.outerHTML = `<img class="lfm-art" id="lfmArt" src="${artUrl}" alt="album art"/>`;
-    }
-  } catch(e) {
-    document.getElementById('lfmSong').textContent = 'Unavailable';
-    document.getElementById('lfmStatusTxt').textContent = 'Error loading';
+  } catch (e) {
+    // silently fail — Spotify is the primary source
   }
 }
 fetchLastFm();
