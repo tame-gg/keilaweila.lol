@@ -1,174 +1,175 @@
-// ── Cursor
-const cur = document.getElementById('cur'), ring = document.getElementById('cur-ring');
-let mx = 0, my = 0, rx = 0, ry = 0;
-document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-(function tick() {
-  rx += (mx - rx) * .14; ry += (my - ry) * .14;
-  cur.style.left = mx + 'px'; cur.style.top = my + 'px';
-  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
-  requestAnimationFrame(tick);
-})();
-document.querySelectorAll('a,button').forEach(el => {
-  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
-});
-
-// ── Theme
-const html = document.documentElement, btn = document.getElementById('themeBtn');
-function applyTheme(t) {
-  html.setAttribute('data-theme', t);
-  try { localStorage.setItem('keila-theme', t); } catch (e) { }
-}
-const saved = (() => { try { return localStorage.getItem('keila-theme'); } catch (e) { return null; } })();
-applyTheme(saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') === 'light' ? 'dark' : 'light'));
-
-// ── Mobile Menu
-const hamburgerBtn = document.getElementById('hamburger');
-const mobileMenu = document.getElementById('mobileMenu');
-const mmOverlay = document.getElementById('mmOverlay');
-hamburgerBtn.addEventListener('click', () => {
-  hamburgerBtn.classList.toggle('active');
-  mobileMenu.classList.toggle('open');
-  document.body.classList.toggle('locked');
-});
-mmOverlay.addEventListener('click', () => {
-  hamburgerBtn.classList.remove('active');
-  mobileMenu.classList.remove('open');
-  document.body.classList.remove('locked');
-});
-document.querySelectorAll('.mm-link').forEach(link => {
-  link.addEventListener('click', () => {
-    hamburgerBtn.classList.remove('active');
-    mobileMenu.classList.remove('open');
-    document.body.classList.remove('locked');
-  });
-});
-
-// ── Canvas Background
-const bgCanvas = document.getElementById('bg-canvas');
-const bgCtx = bgCanvas.getContext('2d');
-let w, h, bgParticles = [];
-function resizeBg() {
-  w = bgCanvas.width = window.innerWidth;
-  h = bgCanvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeBg);
-resizeBg();
-
-class BgParticle {
-  constructor() {
-    this.x = Math.random() * w;
-    this.y = Math.random() * h - h; // Start above screen
-    this.vx = (Math.random() - 0.5) * 1.5;
-    this.vy = Math.random() * 2 + 1; // Fall downwards
-    this.size = Math.random() * 6 + 4;
-    this.angle = Math.random() * Math.PI * 2;
-    this.rotSpeed = (Math.random() - 0.5) * 0.1;
-    this.color = Math.random() > 0.5 ? '#F6DFDA' : '#DBBEBC'; // The two pinks
-  }
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.angle += this.rotSpeed;
-
-    // Add a little sway
-    this.x += Math.sin(this.y * 0.02) * 0.5;
-
-    // Reset if it falls down
-    if (this.y > h + 20) {
-      this.y = -20;
-      this.x = Math.random() * w;
-    }
-    // Wrap horizontally
-    if (this.x > w + 20) this.x = -20;
-    if (this.x < -20) this.x = w + 20;
-  }
-  draw() {
-    bgCtx.save();
-    bgCtx.translate(this.x, this.y);
-    bgCtx.rotate(this.angle);
-    bgCtx.fillStyle = this.color;
-    bgCtx.globalAlpha = document.documentElement.getAttribute('data-theme') === 'dark' ? 0.3 : 0.7;
-
-    // Draw an irregular petal / confetti shape
-    bgCtx.beginPath();
-    bgCtx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
-    bgCtx.fill();
-    bgCtx.restore();
-  }
-}
-for (let i = 0; i < 50; i++) bgParticles.push(new BgParticle());
-
-function animateBg() {
-  bgCtx.clearRect(0, 0, w, h);
-  bgParticles.forEach(p => { p.update(); p.draw(); });
-  requestAnimationFrame(animateBg);
-}
-animateBg();
-
-// ── GSAP Animations
 document.addEventListener('DOMContentLoaded', () => {
-  if (typeof gsap === 'undefined') return;
-  gsap.registerPlugin(ScrollTrigger);
 
-  document.querySelectorAll('.rv').forEach(el => {
-    el.style.transition = 'none';
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
+  // ── Boot Sequence ──
+  const startup = document.getElementById('startup');
+  const enterBtn = document.getElementById('enterBtn');
+  
+  // Show enter button after boot sequence (approx 3.5s)
+  setTimeout(() => {
+    enterBtn.classList.remove('hidden');
+  }, 3500);
+
+  enterBtn.addEventListener('click', () => {
+    startup.style.opacity = '0';
+    setTimeout(() => {
+      startup.style.display = 'none';
+      initDesktop();
+    }, 500);
   });
 
-  gsap.utils.toArray('section').forEach(sec => {
-    const elems = sec.querySelectorAll('.rv');
-    if (elems.length) {
-      gsap.to(elems, {
-        scrollTrigger: { trigger: sec, start: 'top 80%' },
-        y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'power3.out', overwrite: 'auto'
-      });
+  function initDesktop() {
+    updateClock();
+    setInterval(updateClock, 1000);
+  }
+
+  // ── Clock ──
+  function updateClock() {
+    const clockIcon = document.getElementById('clock');
+    const now = new Date();
+    let hours = now.getHours();
+    let mins = now.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; 
+    mins = mins < 10 ? '0' + mins : mins;
+    clockIcon.innerText = `${hours}:${mins} ${ampm}`;
+  }
+
+  // ── Window Management ──
+  const windows = document.querySelectorAll('.window');
+  let zIndexCounter = 1000;
+
+  function bringToFront(win) {
+    zIndexCounter++;
+    win.style.zIndex = zIndexCounter;
+    // Update taskbar active state
+    document.querySelectorAll('.task-app').forEach(app => app.classList.remove('active'));
+    const taskId = win.id;
+    const taskApp = document.querySelector(`.task-app[data-target="${taskId}"]`);
+    if(taskApp) taskApp.classList.add('active');
+  }
+
+  windows.forEach(win => {
+    win.addEventListener('mousedown', () => bringToFront(win));
+    
+    // Dragging logic
+    const header = win.querySelector('.window-header');
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+
+    header.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      initialLeft = win.offsetLeft;
+      initialTop = win.offsetTop;
+      
+      // Prevent text selection during drag
+      document.body.style.userSelect = 'none';
+      bringToFront(win);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      win.style.left = `${initialLeft + dx}px`;
+      win.style.top = `${initialTop + dy}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      document.body.style.userSelect = '';
+    });
+  });
+
+  // ── Closing & Minimizing ──
+  document.querySelectorAll('.close-btn, #minimizePlayer').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      // Find parent window
+      const win = e.target.closest('.window');
+      win.classList.add('hidden');
+      
+      // Remove or dim from taskbar
+      const targetId = win.id;
+      const taskApp = document.querySelector(`.task-app[data-target="${targetId}"]`);
+      if(taskApp) taskApp.style.opacity = '0.5';
+    });
+  });
+
+  // ── Opening from Desktop Icons / Taskbar / Start Menu ──
+  const openTargets = document.querySelectorAll('.desktop-icon, .task-app, .sm-item[data-target]');
+  openTargets.forEach(el => {
+    el.addEventListener('click', () => {
+      const targetId = el.getAttribute('data-target');
+      if(targetId) {
+        const win = document.getElementById(targetId);
+        if(win) {
+          win.classList.remove('hidden');
+          // Fix taskbar opacity if it was closed
+          const taskApp = document.querySelector(`.task-app[data-target="${targetId}"]`);
+          if(taskApp) {
+            if(!taskApp.parentElement) {
+              // Add to taskbar apps if it's missing (it wasn't missing in our HTML, just dimmed)
+            }
+            taskApp.style.opacity = '1';
+          }
+          bringToFront(win);
+        }
+      }
+    });
+  });
+
+  // ── Start Menu Toggle ──
+  const startBtn = document.getElementById('start-btn');
+  const startMenu = document.getElementById('start-menu');
+  
+  startBtn.addEventListener('click', (e) => {
+    startMenu.classList.toggle('hidden');
+    startBtn.classList.toggle('active');
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', (e) => {
+    if(!startMenu.contains(e.target) && !startBtn.contains(e.target)) {
+      startMenu.classList.add('hidden');
+      startBtn.classList.remove('active');
     }
   });
 
-  // Magnetic Buttons
-  document.querySelectorAll('.ss-btn, .port-btn, .soc, .fsoc').forEach(btn => {
-    btn.addEventListener('mousemove', e => {
-      const rect = btn.getBoundingClientRect();
-      const bx = e.clientX - rect.left - rect.width / 2;
-      const by = e.clientY - rect.top - rect.height / 2;
-      gsap.to(btn, { x: bx * 0.3, y: by * 0.3, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
-    });
-    btn.addEventListener('mouseleave', () => {
-      gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)', overwrite: 'auto' });
-    });
+  // Shut down feature (just reloads for fun)
+  document.getElementById('shutDown')?.addEventListener('click', () => {
+    document.body.innerHTML = '<div style="background:black; color:white; height:100vh; display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:2rem;">It is now safe to turn off your computer.</div>';
   });
-});
 
-// ── Parallax
-const heroEl = document.getElementById('hero');
-const gridEl = document.querySelector('.grid-lines');
-window.addEventListener('scroll', () => {
-  const y = window.scrollY;
-  if (y > heroEl.offsetHeight) return;
-  if (gridEl) gridEl.style.transform = `translateY(${y * 0.12}px)`;
-  heroEl.style.setProperty('--prlx', `${y * 0.22}px`);
-}, { passive: true });
+  // ── Sparkle Cursor ──
+  const sparkleContainer = document.getElementById('sparkle-container');
+  let lastSparkleTime = 0;
 
-// ── Start screen enter
-const startScreen = document.getElementById('start-screen');
-const ssLoader = document.getElementById('ss-loader');
-const enterBtn = document.getElementById('enterBtn');
+  document.addEventListener('mousemove', (e) => {
+    const now = Date.now();
+    if (now - lastSparkleTime > 30) { // Limit sparkle creation rate
+      createSparkle(e.clientX, e.clientY);
+      lastSparkleTime = now;
+    }
+  });
 
-document.body.classList.add('locked');
-
-enterBtn.addEventListener('click', () => {
-  startScreen.classList.add('hidden');
-  ssLoader.classList.add('visible');
-  window.scrollTo({ top: 0, behavior: 'instant' });
-  setTimeout(() => {
-    ssLoader.classList.add('fade-out');
+  function createSparkle(x, y) {
+    if(!sparkleContainer) return;
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    // Add small random offset
+    sparkle.style.left = (x - 7 + (Math.random() * 10 - 5)) + 'px';
+    sparkle.style.top = (y - 7 + (Math.random() * 10 - 5)) + 'px';
+    
+    sparkleContainer.appendChild(sparkle);
+    
+    // Clean up
     setTimeout(() => {
-      ssLoader.classList.remove('visible');
-      ssLoader.classList.remove('fade-out');
-      document.body.classList.remove('locked');
-    }, 450);
-  }, 1800);
+      if(sparkle.parentNode) {
+        sparkle.parentNode.removeChild(sparkle);
+      }
+    }, 800);
+  }
+
 });
