@@ -68,10 +68,10 @@ class BgParticle {
     this.color = Math.random() > 0.5 ? '#F6DFDA' : '#DBBEBC'; // The two pinks
   }
   update() {
-    this.x += this.vx; 
+    this.x += this.vx;
     this.y += this.vy;
     this.angle += this.rotSpeed;
-    
+
     // Add a little sway
     this.x += Math.sin(this.y * 0.02) * 0.5;
 
@@ -90,7 +90,7 @@ class BgParticle {
     bgCtx.rotate(this.angle);
     bgCtx.fillStyle = this.color;
     bgCtx.globalAlpha = document.documentElement.getAttribute('data-theme') === 'dark' ? 0.3 : 0.7;
-    
+
     // Draw an irregular petal / confetti shape
     bgCtx.beginPath();
     bgCtx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
