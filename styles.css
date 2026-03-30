@@ -619,6 +619,117 @@ body {
   max-height: none !important;
 }
 
+/* ── Quiz Styles ── */
+.quiz-content {
+  background: var(--bg-color);
+}
+
+.q-block {
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #fff;
+  border: 2px solid var(--border-light);
+  border-right-color: var(--border-dark);
+  border-bottom-color: var(--border-dark);
+}
+
+.q-block label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--hot-pink);
+}
+
+.q-block label.rb {
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.y2k-input {
+  width: 100%;
+  padding: 6px;
+  border: 2px solid var(--border-dark);
+  border-right-color: var(--border-light);
+  border-bottom-color: var(--border-light);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  background: #fff;
+  color: #000;
+  box-sizing: border-box;
+}
+
+.y2k-input:focus {
+  outline: 2px solid var(--hot-pink);
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #fff;
+  background: var(--hot-pink);
+}
+
+.submit-btn:hover {
+  background: #fff;
+  color: var(--hot-pink);
+  border-color: var(--hot-pink);
+}
+
+.quiz-nav {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.quiz-nav .win-btn {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.quiz-res {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff;
+  border: 2px dashed var(--hot-pink);
+  text-align: center;
+  font-weight: bold;
+  color: var(--hot-pink);
+  font-size: 1.2rem;
+}
+
+#volume-popup {
+  position: absolute;
+  bottom: 44px; /* matches taskbar height */
+  right: 10px;
+  background: #c0c0c0;
+  border: 2px solid #fff;
+  border-right-color: #808080;
+  border-bottom-color: #808080;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10000;
+  color: #000;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+}
+
+#volume-popup input[type=range] {
+  width: 100px;
+  cursor: pointer;
+}
+
+
 @media (max-width: 600px) {
   .window {
     width: 95vw;

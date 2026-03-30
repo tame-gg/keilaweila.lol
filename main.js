@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  // Clean up any lingering hashes like #vibe from legacy cache
+  if (window.location.hash) {
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
   // ── Boot Sequence ──
   const startup = document.getElementById('startup');
   const enterBtn = document.getElementById('enterBtn');
@@ -192,10 +197,31 @@ document.addEventListener('DOMContentLoaded', () => {
     e.stopPropagation();
   });
 
+  // ── Volume Control ──
+  const volIcon = document.getElementById('vol-icon');
+  const volPopup = document.getElementById('volume-popup');
+  const volSlider = document.getElementById('vol-slider');
+
+  if (volIcon && volPopup && volSlider) {
+    volIcon.addEventListener('click', (e) => {
+      volPopup.classList.toggle('hidden');
+      e.stopPropagation();
+    });
+
+    volSlider.addEventListener('input', (e) => {
+      if (typeof bgMusic !== 'undefined') {
+        bgMusic.volume = e.target.value;
+      }
+    });
+  }
+
   document.addEventListener('click', (e) => {
     if(!startMenu.contains(e.target) && !startBtn.contains(e.target)) {
       startMenu.classList.add('hidden');
       startBtn.classList.remove('active');
+    }
+    if(volPopup && !volPopup.contains(e.target) && !volIcon.contains(e.target)) {
+      volPopup.classList.add('hidden');
     }
   });
 
@@ -233,5 +259,117 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 800);
   }
+
+  // ── Quiz Games Logic ──
+  function setupQuiz(formId, resId, checkMap, successMsg, okMsg, failMsg) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const res = document.getElementById(resId);
+    
+    // Pagination logic
+    const blocks = Array.from(form.querySelectorAll('.q-block'));
+    const prevBtn = form.querySelector('.prev-btn');
+    const nextBtn = form.querySelector('.next-btn');
+    const submitBtn = form.querySelector('.submit-btn');
+    let currentIndex = 0;
+
+    const updateView = () => {
+      blocks.forEach((b, i) => {
+        if (i === currentIndex) {
+          b.classList.remove('hidden');
+        } else {
+          b.classList.add('hidden');
+        }
+      });
+      
+      if (prevBtn) prevBtn.classList.toggle('hidden', currentIndex === 0);
+      
+      if (currentIndex === blocks.length - 1) {
+        if (nextBtn) nextBtn.classList.add('hidden');
+        if (submitBtn) submitBtn.classList.remove('hidden');
+      } else {
+        if (nextBtn) nextBtn.classList.remove('hidden');
+        if (submitBtn) submitBtn.classList.add('hidden');
+      }
+    };
+
+    if (nextBtn) nextBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentIndex < blocks.length - 1) currentIndex++;
+      updateView();
+    });
+
+    if (prevBtn) prevBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentIndex > 0) currentIndex--;
+      updateView();
+    });
+
+    // Initialize first block visible, hide others
+    updateView();
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (currentIndex < blocks.length - 1) {
+        currentIndex++;
+        updateView();
+        return;
+      }
+      let score = 0;
+      const fd = new FormData(form);
+      
+      const checkText = (key, validArr) => {
+        const val = (fd.get(key) || '').trim().toLowerCase();
+        if (validArr.some(v => val.includes(v))) score++;
+      };
+      
+      const checkRadio = (key, valid) => {
+        if (fd.get(key) === valid) score++;
+      };
+
+      // Run specific checks
+      checkMap(checkText, checkRadio);
+      
+      res.classList.remove('hidden');
+      if (score === blocks.length) {
+        res.innerHTML = `Score: ${score}/${blocks.length}<br>${successMsg}`;
+      } else if (score >= Math.floor(blocks.length * 0.7)) {
+        res.innerHTML = `Score: ${score}/${blocks.length}<br>${okMsg}`;
+      } else {
+        res.innerHTML = `Score: ${score}/${blocks.length}<br>${failMsg}`;
+      }
+      
+      // Hide buttons so they can't submit repeatedly
+      if (prevBtn) prevBtn.classList.add('hidden');
+      if (nextBtn) nextBtn.classList.add('hidden');
+      if (submitBtn) submitBtn.classList.add('hidden');
+    });
+  }
+
+  setupQuiz('form-game1', 'res-game1', (checkText, checkRadio) => {
+    checkText('g1q1', ['filipino', 'philippines', 'pinay']);
+    checkRadio('g1q2', 'cbr');
+    checkText('g1q3', ['19', 'nineteen']);
+    checkRadio('g1q4', 'kardashians');
+    checkText('g1q5', ['rn', 'registered nurse']);
+    checkRadio('g1q6', 'going_out');
+    checkRadio('g1q7', 'true');
+    checkRadio('g1q8', 'nars');
+    checkRadio('g1q9', 'brandy');
+    checkText('g1q10', ['yo mama', 'yo momma']);
+  }, "OMG you're my literal bestie!! ✨", "Pretty good! You definitely know me. 🎀", "Oof... we need to hang out more. 🥲");
+
+  setupQuiz('form-game2', 'res-game2', (checkText, checkRadio) => {
+    checkRadio('g2q1', 'lake');
+    checkRadio('g2q2', 'kubota');
+    checkRadio('g2q3', 'andrew');
+    checkText('g2q4', ['1/16/2025', '01/16/2025', '1/16/25', '01/16/25', 'jan 16']);
+    checkRadio('g2q5', 'dave');
+    checkRadio('g2q6', 'keila');
+    checkRadio('g2q7', 'charlotte');
+    checkText('g2q8', ['lucifer']);
+    checkText('g2q9', ['booyah']);
+    checkText('g2q10', ['married', 'marriage']);
+  }, "You guys are soulmates! 💖💍", "Aww, you got most of them right! 🥰", "Did you guys just meet?? 😭");
 
 });
