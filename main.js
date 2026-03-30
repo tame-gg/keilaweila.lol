@@ -351,13 +351,13 @@ document.addEventListener('DOMContentLoaded', () => {
     checkRadio('g1q2', 'cbr');
     checkText('g1q3', ['19', 'nineteen']);
     checkRadio('g1q4', 'kardashians');
-    checkText('g1q5', ['rn', 'registered nurse']);
+    checkText('g1q5', ['bachelor', 'bsn']);
     checkRadio('g1q6', 'going_out');
     checkRadio('g1q7', 'true');
     checkRadio('g1q8', 'nars');
     checkRadio('g1q9', 'brandy');
     checkText('g1q10', ['yo mama', 'yo momma']);
-  }, "OMG you're my literal bestie!! ✨", "Pretty good! You definitely know me. 🎀", "Oof... we need to hang out more. 🥲");
+  }, "how do i not know u.. secret best friend?? ✨", "Pretty good! You definitely know me. 🎀", "Oof... we need to hang out more. 🥲");
 
   setupQuiz('form-game2', 'res-game2', (checkText, checkRadio) => {
     checkRadio('g2q1', 'lake');
