@@ -2,15 +2,15 @@
 
 :root, [data-theme="light"] {
   --bg: #EEEEEC;
-  --bg2: #F6DFDA;
+  --bg2: #FBF4F3; /* A much softer version of F6DFDA to prevent harsh backgrounds */
   --text: #2C2D2A;
   --muted: #7A7269;
-  --accent: #DBBEBC;
-  --accent2: #A9A49F;
+  --accent: #F6DFDA; /* Using the lighter pink from the palette as the main accent */
+  --accent2: #DBBEBC; /* The dusty pink as secondary */
   --white: #ffffff;
-  --border: rgba(44,45,42,0.08); 
+  --border: rgba(44,45,42,0.06); 
   --card: rgba(255,255,255,0.85); 
-  --shadow: rgba(122,114,105,0.1);
+  --shadow: rgba(122,114,105,0.08);
 }
 [data-theme="dark"] {
   --bg: #2C2D2A;

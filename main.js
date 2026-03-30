@@ -59,57 +59,50 @@ resizeBg();
 class BgParticle {
   constructor() {
     this.x = Math.random() * w;
-    this.y = Math.random() * h;
-    this.vx = (Math.random() - 0.5) * 0.4;
-    this.vy = (Math.random() - 0.5) * 0.4;
-    this.rad = Math.random() * 1.2 + 0.5;
+    this.y = Math.random() * h - h; // Start above screen
+    this.vx = (Math.random() - 0.5) * 1.5;
+    this.vy = Math.random() * 2 + 1; // Fall downwards
+    this.size = Math.random() * 6 + 4;
+    this.angle = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.1;
+    this.color = Math.random() > 0.5 ? '#F6DFDA' : '#DBBEBC'; // The two pinks
   }
   update() {
-    this.x += this.vx; this.y += this.vy;
-    if (this.x < 0 || this.x > w) this.vx *= -1;
-    if (this.y < 0 || this.y > h) this.vy *= -1;
+    this.x += this.vx; 
+    this.y += this.vy;
+    this.angle += this.rotSpeed;
+    
+    // Add a little sway
+    this.x += Math.sin(this.y * 0.02) * 0.5;
+
+    // Reset if it falls down
+    if (this.y > h + 20) {
+      this.y = -20;
+      this.x = Math.random() * w;
+    }
+    // Wrap horizontally
+    if (this.x > w + 20) this.x = -20;
+    if (this.x < -20) this.x = w + 20;
   }
   draw() {
+    bgCtx.save();
+    bgCtx.translate(this.x, this.y);
+    bgCtx.rotate(this.angle);
+    bgCtx.fillStyle = this.color;
+    bgCtx.globalAlpha = document.documentElement.getAttribute('data-theme') === 'dark' ? 0.3 : 0.7;
+    
+    // Draw an irregular petal / confetti shape
     bgCtx.beginPath();
-    bgCtx.arc(this.x, this.y, this.rad, 0, Math.PI * 2);
-    // Uses the soft taupe color 'rgba(169, 164, 159, 1)' from the palette
-    bgCtx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(169, 164, 159, 0.4)';
+    bgCtx.ellipse(0, 0, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
     bgCtx.fill();
+    bgCtx.restore();
   }
 }
-for (let i = 0; i < 60; i++) bgParticles.push(new BgParticle());
+for (let i = 0; i < 50; i++) bgParticles.push(new BgParticle());
 
 function animateBg() {
   bgCtx.clearRect(0, 0, w, h);
-  let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  let cp = isDark ? '255,255,255' : '169, 164, 159'; // A9A49F mapped to RGB
-  
   bgParticles.forEach(p => { p.update(); p.draw(); });
-  
-  for (let i = 0; i < bgParticles.length; i++) {
-    for (let j = i + 1; j < bgParticles.length; j++) {
-      let dx = bgParticles[i].x - bgParticles[j].x, dy = bgParticles[i].y - bgParticles[j].y;
-      let dist = dx*dx + dy*dy;
-      if (dist < 12000) {
-        bgCtx.beginPath();
-        bgCtx.strokeStyle = `rgba(${cp},${0.08 - dist/150000})`;
-        bgCtx.lineWidth = 0.5;
-        bgCtx.moveTo(bgParticles[i].x, bgParticles[i].y);
-        bgCtx.lineTo(bgParticles[j].x, bgParticles[j].y);
-        bgCtx.stroke();
-      }
-    }
-    let dx = bgParticles[i].x - mx, dy = bgParticles[i].y - my;
-    let dist = dx*dx + dy*dy;
-    if (dist < 25000) {
-      bgCtx.beginPath();
-      bgCtx.strokeStyle = `rgba(${cp},${0.2 - dist/125000})`;
-      bgCtx.lineWidth = 0.8;
-      bgCtx.moveTo(bgParticles[i].x, bgParticles[i].y);
-      bgCtx.lineTo(mx, my);
-      bgCtx.stroke();
-    }
-  }
   requestAnimationFrame(animateBg);
 }
 animateBg();
