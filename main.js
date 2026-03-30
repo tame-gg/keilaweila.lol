@@ -15,7 +15,32 @@ document.addEventListener('DOMContentLoaded', () => {
       startup.style.display = 'none';
       initDesktop();
     }, 500);
+    // Auto-play music on first interaction
+    bgMusic.play().catch(e => console.log('Audio autoplay prevented:', e));
   });
+
+  // ── Music Player ──
+  const bgMusic = new Audio('music.mp3');
+  bgMusic.loop = true;
+  const timeDisplay = document.getElementById('winamp-time');
+
+  bgMusic.addEventListener('timeupdate', () => {
+    const mins = Math.floor(bgMusic.currentTime / 60);
+    const secs = Math.floor(bgMusic.currentTime % 60);
+    if (timeDisplay) {
+      timeDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+  });
+
+  document.getElementById('btn-play')?.addEventListener('click', () => bgMusic.play());
+  document.getElementById('btn-pause')?.addEventListener('click', () => bgMusic.pause());
+  document.getElementById('btn-stop')?.addEventListener('click', () => {
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+  });
+  // Simple previous/next just restart the song for now since it's a single track
+  document.getElementById('btn-prev')?.addEventListener('click', () => bgMusic.currentTime = 0);
+  document.getElementById('btn-next')?.addEventListener('click', () => bgMusic.currentTime = 0);
 
   function initDesktop() {
     updateClock();
@@ -37,19 +62,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Window Management ──
   const windows = document.querySelectorAll('.window');
+  const taskbarApps = document.getElementById('taskbar-apps');
   let zIndexCounter = 1000;
 
+  function createTaskbarItem(winId, title) {
+    let taskApp = document.querySelector(`.task-app[data-target="${winId}"]`);
+    if (!taskApp) {
+      taskApp = document.createElement('div');
+      taskApp.className = 'task-app active';
+      taskApp.setAttribute('data-target', winId);
+      taskApp.innerText = title;
+      taskApp.addEventListener('click', () => {
+        const win = document.getElementById(winId);
+        if (win.classList.contains('hidden')) {
+          win.classList.remove('hidden');
+          bringToFront(win);
+        } else if (win.style.zIndex == zIndexCounter) {
+          // If already active at top, minimize it
+          win.classList.add('hidden');
+          taskApp.classList.remove('active');
+        } else {
+          bringToFront(win);
+        }
+      });
+      taskbarApps.appendChild(taskApp);
+    }
+  }
+
   function bringToFront(win) {
+    if (win.classList.contains('hidden')) return;
     zIndexCounter++;
     win.style.zIndex = zIndexCounter;
     // Update taskbar active state
     document.querySelectorAll('.task-app').forEach(app => app.classList.remove('active'));
     const taskId = win.id;
     const taskApp = document.querySelector(`.task-app[data-target="${taskId}"]`);
-    if(taskApp) taskApp.classList.add('active');
+    if (taskApp) taskApp.classList.add('active');
   }
 
   windows.forEach(win => {
+    // Determine initial taskbar state
+    if (!win.classList.contains('hidden')) {
+      const title = win.getAttribute('data-title') || win.id;
+      createTaskbarItem(win.id, title);
+    }
+
     win.addEventListener('mousedown', () => bringToFront(win));
     
     // Dragging logic
@@ -58,6 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let startX, startY, initialLeft, initialTop;
 
     header.addEventListener('mousedown', (e) => {
+      // Prevent drag if clicking a button
+      if (e.target.tagName === 'BUTTON') return;
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
@@ -71,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
+      if (win.classList.contains('maximized')) return; // Disable drag if maximized
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       win.style.left = `${initialLeft + dx}px`;
@@ -83,22 +143,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── Closing & Minimizing ──
-  document.querySelectorAll('.close-btn, #minimizePlayer').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      // Find parent window
+  // ── Buttons ──
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('close-btn')) {
       const win = e.target.closest('.window');
       win.classList.add('hidden');
-      
-      // Remove or dim from taskbar
-      const targetId = win.id;
-      const taskApp = document.querySelector(`.task-app[data-target="${targetId}"]`);
-      if(taskApp) taskApp.style.opacity = '0.5';
-    });
+      const taskApp = document.querySelector(`.task-app[data-target="${win.id}"]`);
+      if (taskApp) taskApp.remove();
+    }
+    
+    if (e.target.classList.contains('min-btn')) {
+      const win = e.target.closest('.window');
+      win.classList.add('hidden');
+      const taskApp = document.querySelector(`.task-app[data-target="${win.id}"]`);
+      if (taskApp) taskApp.classList.remove('active');
+    }
+
+    if (e.target.classList.contains('max-btn')) {
+      const win = e.target.closest('.window');
+      win.classList.toggle('maximized');
+    }
   });
 
-  // ── Opening from Desktop Icons / Taskbar / Start Menu ──
-  const openTargets = document.querySelectorAll('.desktop-icon, .task-app, .sm-item[data-target]');
+  // ── Opening from Desktop Icons / Start Menu ──
+  const openTargets = document.querySelectorAll('.desktop-icon, .sm-item[data-target]');
   openTargets.forEach(el => {
     el.addEventListener('click', () => {
       const targetId = el.getAttribute('data-target');
@@ -106,14 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const win = document.getElementById(targetId);
         if(win) {
           win.classList.remove('hidden');
-          // Fix taskbar opacity if it was closed
-          const taskApp = document.querySelector(`.task-app[data-target="${targetId}"]`);
-          if(taskApp) {
-            if(!taskApp.parentElement) {
-              // Add to taskbar apps if it's missing (it wasn't missing in our HTML, just dimmed)
-            }
-            taskApp.style.opacity = '1';
-          }
+          const title = win.getAttribute('data-title') || targetId;
+          createTaskbarItem(targetId, title);
           bringToFront(win);
         }
       }

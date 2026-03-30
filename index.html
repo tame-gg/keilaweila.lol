@@ -62,10 +62,12 @@
     </div>
 
     <!-- Window: About -->
-    <div class="window active" id="win-about" style="top: 10%; left: 10%;">
+    <div class="window active" id="win-about" data-title="About_Me.txt" style="top: 10%; left: 10%;">
       <div class="window-header">
         <div class="window-title"><span>🎀</span> About Me — Notepad</div>
         <div class="window-controls">
+          <button class="win-btn min-btn" data-target="win-about">_</button>
+          <button class="win-btn max-btn" data-target="win-about">☐</button>
           <button class="win-btn close-btn" data-target="win-about">X</button>
         </div>
       </div>
@@ -93,10 +95,12 @@
     </div>
 
     <!-- Window: Experience -->
-    <div class="window" id="win-exp" style="top: 25%; left: 45%;">
+    <div class="window" id="win-exp" data-title="Experience.doc" style="top: 25%; left: 45%;">
       <div class="window-header">
         <div class="window-title"><span>💿</span> Experience.doc — WordPad</div>
         <div class="window-controls">
+          <button class="win-btn min-btn" data-target="win-exp">_</button>
+          <button class="win-btn max-btn" data-target="win-exp">☐</button>
           <button class="win-btn close-btn" data-target="win-exp">X</button>
         </div>
       </div>
@@ -126,10 +130,12 @@
     </div>
 
     <!-- Window: Socials -->
-    <div class="window" id="win-socials" style="top: 60%; left: 15%;">
+    <div class="window" id="win-socials" data-title="Socials.exe" style="top: 60%; left: 15%;">
       <div class="window-header">
         <div class="window-title"><span>🌐</span> SocialLinks.exe</div>
         <div class="window-controls">
+          <button class="win-btn min-btn" data-target="win-socials">_</button>
+          <button class="win-btn max-btn" data-target="win-socials">☐</button>
           <button class="win-btn close-btn" data-target="win-socials">X</button>
         </div>
       </div>
@@ -148,27 +154,28 @@
     </div>
 
     <!-- Mini Music Player -->
-    <div class="window" id="win-player" style="top: 5%; right: 5%; width: 280px; height: auto;">
+    <div class="window" id="win-player" data-title="Music Player" style="top: 5%; right: 5%; width: 280px; height: auto;">
       <div class="window-header winamp-header">
         <div class="window-title"><span>🎵</span> Keilamp</div>
         <div class="window-controls">
-          <button class="win-btn" id="minimizePlayer">_</button>
+          <button class="win-btn min-btn" data-target="win-player">_</button>
+          <button class="win-btn close-btn" data-target="win-player">X</button>
         </div>
       </div>
       <div class="winamp-body">
         <div class="winamp-screen">
-          <div class="winamp-time">01:43</div>
+          <div class="winamp-time" id="winamp-time">00:00</div>
           <div class="winamp-song">
-            <marquee scrollamount="4">Now Playing: PinkPantheress - Boy's a liar Pt. 2 *** </marquee>
+            <marquee scrollamount="4">Now Playing: PinkPantheress & Ice Spice - Boy's a liar Pt. 2 *** </marquee>
           </div>
           <div class="winamp-kbps">192 kbps | 44 kHz</div>
         </div>
         <div class="winamp-controls">
-          <button class="w-ctrl">⏮</button>
-          <button class="w-ctrl">▶</button>
-          <button class="w-ctrl">⏸</button>
-          <button class="w-ctrl">⏹</button>
-          <button class="w-ctrl">⏭</button>
+          <button class="w-ctrl" id="btn-prev">⏮</button>
+          <button class="w-ctrl" id="btn-play">▶</button>
+          <button class="w-ctrl" id="btn-pause">⏸</button>
+          <button class="w-ctrl" id="btn-stop">⏹</button>
+          <button class="w-ctrl" id="btn-next">⏭</button>
         </div>
       </div>
     </div>
@@ -180,7 +187,6 @@
       <span>🍓</span> Start
     </button>
     <div id="taskbar-apps">
-      <div class="task-app active" data-target="win-about">About_Me.txt</div>
     </div>
     <div id="taskbar-sysTray">
       <span class="tray-icon" aria-label="Volume">🔊</span>
